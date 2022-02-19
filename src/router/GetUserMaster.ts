@@ -1,6 +1,6 @@
 import express from "express";
 import { Connection, Request } from "tedious"
-import  config  from "../config/App.config.js"
+import  config  from "../../config.json"
 
 const router: express.Router = express.Router();
 
@@ -15,7 +15,7 @@ router.get('/api/sql/GetUserMaster', function(req, res, next){
     console.log('sql')
     // Getはなくてもよさそう
     // res.set({ "Access-Control-Allow-Origin": '*' });
-    const connection = new Connection(config);
+    const connection = new Connection(config["DATABASE"]);
     connection.connect();
     connection.on('connect', function(err)
     {

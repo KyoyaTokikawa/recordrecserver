@@ -1,0 +1,17 @@
+{
+    "VUE-APP": "http://1.1.1.1:8080",
+    "DATABASE":{
+        "server": "SERVER",
+        "authentication":{
+            "type":"default",
+            "options": {
+                "userName": "USER",
+                "password": "PASS"
+            }
+        },
+        "options": {
+            "encrypt": false,
+            "database": "DATABASENAME"
+        }
+    }
+}

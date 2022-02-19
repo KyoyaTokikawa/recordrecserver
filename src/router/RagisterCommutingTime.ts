@@ -1,6 +1,6 @@
 import express from "express";
 import { Connection, Request } from "tedious"
-import  config  from "../config/App.config.js"
+import config from "../../config.json"
 
 const router: express.Router = express.Router();
 
@@ -9,10 +9,13 @@ let UserID: string = "";
 let Name: string = "";
 let CommutingTime: string = "";
 
-router.get('/api/sql/RegisterCommutingTime', function(req, res, next){
-    UserID        = typeof(req.query.UserID)        === 'string' ? req.query.UserID        : "";
-    Name          = typeof(req.query.Name)          === 'string' ? req.query.Name          : "";
-    CommutingTime = typeof(req.query.CommutingTime) === 'string' ? req.query.CommutingTime : "";
+// テスト curl コマンド
+// curl http://localhost:3000/api/sql/RegisterCommutingTime -X POST -H "Content-Type:application/json" -d "{\"UserID\":\"1\",\"Name\":\"toki\",\"CommutingTime\":\"2022-02-02\"}"
+
+router.post('/api/sql/RegisterCommutingTime', function(req, res, next){
+    UserID        = typeof(req.body.UserID)        === 'number' ? req.body.UserID        : "";
+    Name          = typeof(req.body.Name)          === 'string' ? req.body.Name          : "";
+    CommutingTime = typeof(req.body.CommutingTime) === 'string' ? req.body.CommutingTime : "";
     const sql = (`INSERT INTO
     AttendanceTable
     VALUES (
@@ -24,11 +27,13 @@ router.get('/api/sql/RegisterCommutingTime', function(req, res, next){
         ,GETDATE()
         ,GETDATE()
     );`);
-    const connection = new Connection(config);
+
     if (UserID === "" || Name === "" || CommutingTime === "")
     {
         return res.send("false");
     }
+    
+    const connection = new Connection(config['DATABASE']);
     connection.connect();
     connection.on('connect', function(err)
     {
@@ -53,23 +58,6 @@ router.get('/api/sql/RegisterCommutingTime', function(req, res, next){
                 console.log('failed' + err);
             }
             connection.close();
-        });
-        request.on('row', function (columns: any) {
-            const val: string[] = [];
-            columns.forEach(function (column: any) {
-                if (column.value === null) {
-                    console.log('NULL');
-                    val.push('Null');
-                }
-                else
-                {
-                    val.push(column.value);
-                }
-            });
-            if (val.length > 0)
-            {
-                return res.send(val);
-            }
         });
 
         request.on('requestCompleted', function () {
