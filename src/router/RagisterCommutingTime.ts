@@ -9,7 +9,7 @@ let UserID: string = "";
 let Name: string = "";
 let CommutingTime: string = "";
 
-router.get('/api/sql/GetUserMaster2', function(req, res, next){
+router.get('/api/sql/RegisterCommutingTime', function(req, res, next){
     UserID        = typeof(req.query.UserID)        === 'string' ? req.query.UserID        : "";
     Name          = typeof(req.query.Name)          === 'string' ? req.query.Name          : "";
     CommutingTime = typeof(req.query.CommutingTime) === 'string' ? req.query.CommutingTime : "";
