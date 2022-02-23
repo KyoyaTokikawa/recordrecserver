@@ -1,5 +1,6 @@
 import express from 'express'
 import RagisterCommutingTime from "./router/RagisterCommutingTime.js";
+import GetUserMaster from "./router/GetUserMaster.js"
 import bodyparser from "body-parser"
 import path from 'path'
 import config from "../config.json"
@@ -19,6 +20,7 @@ const dirname = path.dirname(new URL(import.meta.url).pathname)
 app.use(express.static(path.join(dirname, "public")))
 
 app.use(RagisterCommutingTime);
+app.use(GetUserMaster);
 
 export default app.listen(3000, () => {
     console.log("App is running at http://localhost:3000")

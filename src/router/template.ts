@@ -4,17 +4,17 @@ import  config  from "../../config.json"
 
 const router: express.Router = express.Router();
 
-interface ColumnValue
-{
-    ColumnName: string;
-    Value: any;
-}
+router.get('/api/version', (req: express.Request, res: express.Response) => {
+    console.log("/api/version")
+    res.json({version: '0.0.1'})
+});
 
 const sql = "select * from UserMaster";
 
 router.get('/api/sql/GetUserMaster', function(req, res, next){
     console.log('sql')
-
+    // Getはなくてもよさそう
+    // res.set({ "Access-Control-Allow-Origin": '*' });
     const connection = new Connection(config["DATABASE"]);
     connection.connect();
     connection.on('connect', function(err)
@@ -28,7 +28,6 @@ router.get('/api/sql/GetUserMaster', function(req, res, next){
         {
             
             executeStatement(sql)
-
         }
     });
     connection.on('end', function() {
@@ -36,7 +35,6 @@ router.get('/api/sql/GetUserMaster', function(req, res, next){
     });
 
     function executeStatement(sql: string) {
-        let result: ColumnValue[] = [];
         const request = new Request(sql, function (err: any) {
             if (err)
             {
@@ -44,25 +42,22 @@ router.get('/api/sql/GetUserMaster', function(req, res, next){
             }
             connection.close();
         });
-
-        // 複数行取得の時は、'doneInProc'が取得できたら全行取得完了　※多分
-        request.on('doneInProc', function (rowCount, more, rows) {
-            console.log('row: '+ rowCount);
-            return res.send(result);
-        });
-
         request.on('row', function (columns: any) {
+            const val: string[] = [];
             columns.forEach(function (column: any) {
                 if (column.value === null) {
                     console.log('NULL');
-                    result.push({ ColumnName:'', Value:'' });
+                    val.push('Null');
                 }
                 else
                 {
-                    console.log({ColumnName:column.metadata.colName, Value: column.value})
-                    result.push({ColumnName:column.metadata.colName, Value: column.value});
+                    val.push(column.value);
                 }
             });
+            if (val.length > 0)
+            {
+                return res.send(val);
+            }
         });
 
         request.on('requestCompleted', function () {
@@ -72,5 +67,25 @@ router.get('/api/sql/GetUserMaster', function(req, res, next){
         connection.execSql(request);
     }
 });
+
+
+router.post('/api/hello', (req, res) => {
+    res.setHeader('Content-Type', 'text/plain');
+    res.set({ "Access-Control-Allow-Origin": '*' });
+    if (typeof(req.body) === "undefined")
+    {
+        res.send(`Hello Undefined`);
+    }
+    else
+    {
+        res.send(`Hello ${req.body.userName}`);
+    }
+});
+
+router.get('/api/hello', (req, res) => {
+    res.set({ "Access-Control-Allow-Origin": '*' });
+    console.log("hello world" + req.params);
+    res.send("hello world" + req.body);
+})
 
 export default router
