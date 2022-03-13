@@ -4,10 +4,18 @@ import  config  from "../../config.json"
 
 const router: express.Router = express.Router();
 
-interface ColumnValue
+// interface ColumnValue
+// {
+//     ColumnName: string;
+//     Value: any;
+// }
+
+interface User
 {
-    ColumnName: string;
-    Value: any;
+    ID            : number | null;
+    Name          : string | null;
+    CreateDateTime: Date   | null;
+    UpdateDateTime: Date   | null;
 }
 
 const sql = "select * from UserMaster";
@@ -36,7 +44,7 @@ router.get('/api/sql/GetUserMaster', function(req, res, next){
     });
 
     function executeStatement(sql: string) {
-        let result: ColumnValue[] = [];
+        let result: User[] = [];
         const request = new Request(sql, function (err: any) {
             if (err)
             {
@@ -52,17 +60,28 @@ router.get('/api/sql/GetUserMaster', function(req, res, next){
         });
 
         request.on('row', function (columns: any) {
+            let data: User = {ID: null, Name: null, CreateDateTime: null, UpdateDateTime: null};
             columns.forEach(function (column: any) {
                 if (column.value === null) {
                     console.log('NULL');
-                    result.push({ ColumnName:'', Value:'' });
+                    result.push();
                 }
                 else
                 {
-                    console.log({ColumnName:column.metadata.colName, Value: column.value})
-                    result.push({ColumnName:column.metadata.colName, Value: column.value});
+                    switch (column.metadata.colName)
+                    {
+                        case "ID":
+                            data.ID = column.value;
+                        case "Name":
+                            data.Name = column.value;
+                        case "CreateDateTime":
+                            data.CreateDateTime = column.value;
+                        case "UpdateDateTime":
+                            data.UpdateDateTime = column.value;
+                    }
                 }
             });
+            result.push(data);
         });
 
         request.on('requestCompleted', function () {
