@@ -1,6 +1,6 @@
 import express from 'express'
 import GetUserMaster from "./router/GetUserMaster.js"
-import SqlPost from "./router/SqlPost.js"
+import ExecSql from "./router/ExecSql.js"
 import bodyparser from "body-parser"
 import path from 'path'
 import config from "../config.json"
@@ -20,7 +20,7 @@ const dirname = path.dirname(new URL(import.meta.url).pathname)
 app.use(express.static(path.join(dirname, "public")))
 
 app.use(GetUserMaster);
-app.use(SqlPost);
+app.use(ExecSql);
 
 export default app.listen(3000, () => {
     console.log("App is running at http://localhost:3000")
