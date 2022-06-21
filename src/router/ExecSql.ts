@@ -1,7 +1,7 @@
 import express from "express";
 import { Connection, Request } from "tedious"
 import config from "../../config.json"
-
+import {GetColVal} from "./util/ExecSqlUtil.js"
 const router: express.Router = express.Router();
 
 // テスト curl コマンド
@@ -20,7 +20,7 @@ router.post('/api/sql', function(req, res, next){
             process.exit();
         }
         else if (typeof(sql) == 'string')
-        {            
+        {
             executeStatement(sql)
         }
     });
@@ -47,13 +47,10 @@ router.post('/api/sql', function(req, res, next){
 });
 
 router.get('/api/sql', function(req, res, next){
-    // interface data {
-    //     colName: string;
-    //     value: string;
-    // }
     const sql = req.query['sql'];
     const connection = new Connection(config["DATABASE"]);
     connection.connect();
+    const ColName = req.query['Return'] as string[];
     connection.on('connect', function(err)
     {
         if (err && typeof(sql) != 'string')
@@ -63,9 +60,7 @@ router.get('/api/sql', function(req, res, next){
         }
         else if (typeof(sql) == 'string')
         {
-            console.log(sql)
             executeStatement(sql)
-
         }
     });
     connection.on('end', function() {
@@ -73,7 +68,7 @@ router.get('/api/sql', function(req, res, next){
     });
 
     function executeStatement(sql: string) {
-        let result: string[][] = [];
+        let result: string = '';
         const request = new Request(sql, function (err: any) {
             if (err)
             {
@@ -84,31 +79,35 @@ router.get('/api/sql', function(req, res, next){
 
         // 複数行取得の時は、'doneInProc'が取得できたら全行取得完了　※多分
         request.on('doneInProc', function (rowCount, more, rows) {
-            console.log('row: '+ rowCount);
             console.log(result)
             return res.send(result);
         });
 
         request.on('row', function (columns: any) {
             let columndata: string = '';
-            let rows: string[] = [];
+            result += "{";
+            let count = 0;
             columns.forEach(function (column: any) {
                 if (column.value === null)
                 {
-                    console.log('NULL');
-                    result.push();
+                    result += `\n"${ColName[count]}":${GetColVal(column.value, column.metadata.type['type'])}`
                 }
                 else
                 {
-                    columndata = `{"${column.metadata.colName}":${column.value}}`
+                    columndata = `\n"${ColName[count]}":${GetColVal(column.value, column.metadata.type['type'])}`
+
+                    if (count != columns.count)
+                    {
+                        columndata += ','
+                    }
                     if(columndata != null)
                     {
-                        rows.push(columndata);
+                        result += columndata;
                     }
                 }
-
+                count++;
             });
-            result.push(rows);
+            result += "\n}\n";
         });
 
         request.on('requestCompleted', function () {
