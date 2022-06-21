@@ -51,6 +51,7 @@ router.get('/api/sql', function(req, res, next){
     const connection = new Connection(config["DATABASE"]);
     connection.connect();
     const ColName = req.query['Return'] as string[];
+    const Keys = req.query['Keys'] as string[];
     connection.on('connect', function(err)
     {
         if (err && typeof(sql) != 'string')
@@ -79,35 +80,64 @@ router.get('/api/sql', function(req, res, next){
 
         // 複数行取得の時は、'doneInProc'が取得できたら全行取得完了　※多分
         request.on('doneInProc', function (rowCount, more, rows) {
+            result += '\n}'
             console.log(result)
             return res.send(result);
         });
 
         request.on('row', function (columns: any) {
             let columndata: string = '';
-            result += "{";
+            let Key: string = '';
             let count = 0;
             columns.forEach(function (column: any) {
                 if (column.value === null)
                 {
-                    result += `\n"${ColName[count]}":${GetColVal(column.value, column.metadata.type['type'])}`
+                    if (columndata != '')
+                    {
+                        columndata += `,\n\t"${ColName[count]}":${GetColVal(column.value, column.metadata.type['type'])}`
+                    }
+                    else
+                    {
+                        columndata += `\t"${ColName[count]}":${GetColVal(column.value, column.metadata.type['type'])}`
+                    }
                 }
                 else
                 {
-                    columndata = `\n"${ColName[count]}":${GetColVal(column.value, column.metadata.type['type'])}`
-
-                    if (count != columns.count)
+                    if (Keys.includes(`${ColName[count]}`))
                     {
-                        columndata += ','
+                        if (Key == '')
+                        {
+                            Key += '"'
+                            Key += `${GetColVal(column.value, column.metadata.type['type'])?.toString()}`
+                        }
+                        else
+                        {
+                            Key += `-${GetColVal(column.value, column.metadata.type['type'])?.toString()}`
+                        }
                     }
-                    if(columndata != null)
+
+                    if (columndata != '')
                     {
-                        result += columndata;
+                        columndata += `,\n\t"${ColName[count]}":${GetColVal(column.value, column.metadata.type['type'])}`
+                    }
+                    else
+                    {
+                        columndata += `\t"${ColName[count]}":${GetColVal(column.value, column.metadata.type['type'])}`
                     }
                 }
                 count++;
             });
-            result += "\n}\n";
+            if (result === '')
+            {
+                result += '{\n';
+                result += `\t${Key}":{\n${columndata}\n\t}`
+            }
+            else
+            {
+                result += '\n\t,'
+                result += `${Key}":{\n${columndata}`
+                result += '\n\t}'
+            }
         });
 
         request.on('requestCompleted', function () {
