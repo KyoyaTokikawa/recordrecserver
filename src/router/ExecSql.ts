@@ -26,14 +26,15 @@ router.post('/api/sql', function(req, res, next){
     });
     connection.on('end', function() {
         console.log('disconnected');
-        return res.send();
+        return res.send('finish');
     });
 
     function executeStatement(sql: string) {
         const request = new Request(sql, function (err: any) {
             if (err)
             {
-                console.log('failed' + err);
+                console.log(sql)
+                console.log('POSTfailed' + err);
             }
             connection.close();
         });
@@ -73,7 +74,7 @@ router.get('/api/sql', function(req, res, next){
         const request = new Request(sql, function (err: any) {
             if (err)
             {
-                console.log('failed' + err);
+                console.log('GETfailed' + err);
             }
             connection.close();
         });
