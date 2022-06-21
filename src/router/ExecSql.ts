@@ -47,10 +47,10 @@ router.post('/api/sql', function(req, res, next){
 });
 
 router.get('/api/sql', function(req, res, next){
-    interface data {
-        colName: string;
-        value: string;
-    }
+    // interface data {
+    //     colName: string;
+    //     value: string;
+    // }
     const sql = req.query['sql'];
     const connection = new Connection(config["DATABASE"]);
     connection.connect();
@@ -63,7 +63,7 @@ router.get('/api/sql', function(req, res, next){
         }
         else if (typeof(sql) == 'string')
         {
-            
+            console.log(sql)
             executeStatement(sql)
 
         }
@@ -73,7 +73,7 @@ router.get('/api/sql', function(req, res, next){
     });
 
     function executeStatement(sql: string) {
-        let result: data[][] = [];
+        let result: string[][] = [];
         const request = new Request(sql, function (err: any) {
             if (err)
             {
@@ -85,12 +85,13 @@ router.get('/api/sql', function(req, res, next){
         // 複数行取得の時は、'doneInProc'が取得できたら全行取得完了　※多分
         request.on('doneInProc', function (rowCount, more, rows) {
             console.log('row: '+ rowCount);
+            console.log(result)
             return res.send(result);
         });
 
         request.on('row', function (columns: any) {
-            let columndata: data | null = null;
-            let rows: data[] = [];
+            let columndata: string = '';
+            let rows: string[] = [];
             columns.forEach(function (column: any) {
                 if (column.value === null)
                 {
@@ -99,14 +100,10 @@ router.get('/api/sql', function(req, res, next){
                 }
                 else
                 {
-                    columndata = {
-                        colName: column.metadata.colName,
-                        value: column.value
-                    }
+                    columndata = `{"${column.metadata.colName}":${column.value}}`
                     if(columndata != null)
                     {
                         rows.push(columndata);
-                        console.log(columndata)
                     }
                 }
 
