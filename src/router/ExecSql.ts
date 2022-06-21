@@ -69,7 +69,7 @@ router.get('/api/sql', function(req, res, next){
     });
 
     function executeStatement(sql: string) {
-        let result: string = '';
+        let result: string | null = '';
         const request = new Request(sql, function (err: any) {
             if (err)
             {
@@ -80,7 +80,14 @@ router.get('/api/sql', function(req, res, next){
 
         // 複数行取得の時は、'doneInProc'が取得できたら全行取得完了　※多分
         request.on('doneInProc', function (rowCount, more, rows) {
-            result += '\n}'
+            if (result != '')
+            {
+                result += '\n}'
+            }
+            else
+            {
+                result = null;
+            }
             console.log(result)
             return res.send(result);
         });
