@@ -49,10 +49,10 @@ router.post('/api/sql', function(req, res, next){
 
 router.get('/api/sql', function(req, res, next){
     const sql = req.query['sql'];
+    console.log(sql)
     const connection = new Connection(config["DATABASE"]);
     connection.connect();
     const ColName = req.query['Return'] as string[];
-    const Keys = req.query['Keys'] as string[];
     connection.on('connect', function(err)
     {
         if (err && typeof(sql) != 'string')
@@ -71,6 +71,7 @@ router.get('/api/sql', function(req, res, next){
 
     function executeStatement(sql: string) {
         let result: string | null = '';
+        let columndata: string = '';
         const request = new Request(sql, function (err: any) {
             if (err)
             {
@@ -81,71 +82,36 @@ router.get('/api/sql', function(req, res, next){
 
         // 複数行取得の時は、'doneInProc'が取得できたら全行取得完了　※多分
         request.on('doneInProc', function (rowCount, more, rows) {
-            if (result != '')
-            {
-                result += '\n}'
-            }
-            else
-            {
-                result = null;
-            }
+            result = `[${columndata}]`
             console.log(result)
             return res.send(result);
         });
 
         request.on('row', function (columns: any) {
-            let columndata: string = '';
-            let Key: string = '';
             let count = 0;
+            if (columndata === '')
+            {
+                columndata += '{'
+            }
+            else
+            {
+                columndata += ',{'
+            }
+            let rowData = "";
             columns.forEach(function (column: any) {
-                if (column.value === null)
                 {
-                    if (columndata != '')
+                    if (rowData === '')
                     {
-                        columndata += `,\n\t"${ColName[count]}":${GetColVal(column.value, column.metadata.type['type'])}`
+                        rowData += `"${ColName[count]}":${GetColVal(column.value, column.metadata.type['type'])}`
                     }
                     else
                     {
-                        columndata += `\t"${ColName[count]}":${GetColVal(column.value, column.metadata.type['type'])}`
-                    }
-                }
-                else
-                {
-                    if (Keys.includes(`${ColName[count]}`))
-                    {
-                        if (Key == '')
-                        {
-                            Key += '"'
-                            Key += `${GetColVal(column.value, column.metadata.type['type'])?.toString()}`
-                        }
-                        else
-                        {
-                            Key += `-${GetColVal(column.value, column.metadata.type['type'])?.toString()}`
-                        }
-                    }
-
-                    if (columndata != '')
-                    {
-                        columndata += `,\n\t"${ColName[count]}":${GetColVal(column.value, column.metadata.type['type'])}`
-                    }
-                    else
-                    {
-                        columndata += `\t"${ColName[count]}":${GetColVal(column.value, column.metadata.type['type'])}`
+                        rowData += `,"${ColName[count]}":${GetColVal(column.value, column.metadata.type['type'])}`
                     }
                 }
                 count++;
             });
-            if (result === '')
-            {
-                result += '{\n';
-                result += `\t${Key}":{\n${columndata}\n\t}`
-            }
-            else
-            {
-                result += '\n\t,'
-                result += `${Key}":{\n${columndata}`
-                result += '\n\t}'
-            }
+            columndata += `${rowData}}`
         });
 
         request.on('requestCompleted', function () {
