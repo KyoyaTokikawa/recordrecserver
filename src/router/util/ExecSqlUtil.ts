@@ -12,8 +12,10 @@ export function GetColVal(val: object, type: string)
             return `"${val}"`;
         case 'DATETIMN':
             return `"${val}"`;
+        case 'DATETIME2N':
+            return `"${val}"`;
         default:
-            return null;
+            return `"${val}"`;
     }
 
 }

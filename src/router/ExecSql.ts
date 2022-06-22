@@ -99,15 +99,13 @@ router.get('/api/sql', function(req, res, next){
             }
             let rowData = "";
             columns.forEach(function (column: any) {
+                if (rowData === '')
                 {
-                    if (rowData === '')
-                    {
-                        rowData += `"${ColName[count]}":${GetColVal(column.value, column.metadata.type['type'])}`
-                    }
-                    else
-                    {
-                        rowData += `,"${ColName[count]}":${GetColVal(column.value, column.metadata.type['type'])}`
-                    }
+                    rowData += `"${ColName[count]}":${GetColVal(column.value, column.metadata.type['type'])}`
+                }
+                else
+                {
+                    rowData += `,"${ColName[count]}":${GetColVal(column.value, column.metadata.type['type'])}`
                 }
                 count++;
             });
