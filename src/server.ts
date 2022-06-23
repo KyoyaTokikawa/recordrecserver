@@ -1,5 +1,4 @@
 import express from 'express'
-import GetUserMaster from "./router/GetUserMaster.js"
 import ExecSql from "./router/ExecSql.js"
 import bodyparser from "body-parser"
 import path from 'path'
@@ -19,7 +18,6 @@ const dirname = path.dirname(new URL(import.meta.url).pathname)
 
 app.use(express.static(path.join(dirname, "public")))
 
-app.use(GetUserMaster);
 app.use(ExecSql);
 
 export default app.listen(3000, () => {
