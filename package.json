@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:backend": "tsc -b tsconfig.backend.json",
+    "build": "tsc -b tsconfig.backend.json",
     "start": "node  --experimental-json-modules ./dist/src/server.js"
   },
   "author": "",
